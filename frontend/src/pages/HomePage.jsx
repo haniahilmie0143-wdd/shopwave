@@ -13,39 +13,45 @@ const HomePage = () => {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
   const [sort, setSort] = useState('default')
+
   const heroRef = useRef(null)
+
+  // ✅ IMPORTANT: Railway API base URL from Netlify env
+  const API = import.meta.env.VITE_API_URL
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true)
+        setError(null)
 
         const { data } = await axios.get(
-          `/api/products${search ? `?keyword=${search}` : ''}`
+          `${API}/api/products${search ? `?keyword=${search}` : ''}`,
+          { timeout: 10000 }
         )
 
-        // ✅ SAFE NORMALIZATION (fixes your crash root cause)
-        const safeData =
-          Array.isArray(data)
-            ? data
-            : Array.isArray(data?.products)
-            ? data.products
-            : []
+        // ✅ Normalize backend response safely
+        const safeData = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.products)
+          ? data.products
+          : []
 
         setProducts(safeData)
 
       } catch (err) {
-        setError('Failed to load products. Make sure your backend is running.')
+        console.log('API ERROR:', err.message)
+        setError('Failed to load products. Please try again later.')
         setProducts([])
       } finally {
         setLoading(false)
       }
     }
 
-    fetchProducts()
-  }, [search])
+    if (API) fetchProducts()
+  }, [search, API])
 
-  const filtered = (Array.isArray(products) ? products : [])
+  const filtered = products
     .filter((p) => category === 'All' || p.category === category)
     .sort((a, b) => {
       if (sort === 'price-asc') return a.price - b.price
@@ -57,7 +63,7 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-dark page-enter">
 
-      {/* HERO SECTION (unchanged UI except safety fix below) */}
+      {/* HERO */}
       <section ref={heroRef} className="relative min-h-screen flex items-center overflow-hidden">
 
         <div className="orb w-[600px] h-[600px] bg-primary/10 top-1/2 -translate-y-1/2 -left-48 glow-pulse" />
@@ -67,7 +73,6 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-6 pt-24 pb-12 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
-            {/* LEFT SIDE */}
             <div>
               <h1 className="font-display text-6xl lg:text-7xl font-bold leading-[1.0] mb-6">
                 <span className="gradient-text">Premium</span><br />
@@ -75,35 +80,34 @@ const HomePage = () => {
                 <span className="text-silver font-normal italic">redefined.</span>
               </h1>
 
-              {/* FLOATING PRODUCTS (🔥 FIXED CRASH HERE) */}
+              {/* FLOATING PRODUCTS */}
               <div className="hidden lg:grid grid-cols-2 gap-4 relative mt-10">
+
                 <div className="orb w-64 h-64 bg-primary/15 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
 
-                {(Array.isArray(products) ? products : [])
-                  .slice(0, 4)
-                  .map((p, i) => (
-                    <div
-                      key={p?._id || i}
-                      className={`glass border border-glass-border rounded-3xl overflow-hidden float ${i % 2 === 1 ? 'mt-8' : ''}`}
-                      style={{ animationDelay: `${i * 0.5}s` }}
-                    >
-                      <img
-                        src={p?.image || ''}
-                        alt={p?.name || 'product'}
-                        className="w-full aspect-square object-cover opacity-90"
-                      />
-                      <div className="p-3">
-                        <p className="text-xs font-bold font-display text-bright truncate">
-                          {p?.name || 'Unnamed'}
-                        </p>
-                        <p className="text-xs text-primary font-semibold">
-                          ${p?.price ?? 0}
-                        </p>
-                      </div>
+                {products.slice(0, 4).map((p, i) => (
+                  <div
+                    key={p?._id || i}
+                    className={`glass border border-glass-border rounded-3xl overflow-hidden float ${i % 2 === 1 ? 'mt-8' : ''}`}
+                    style={{ animationDelay: `${i * 0.5}s` }}
+                  >
+                    <img
+                      src={p?.image || ''}
+                      alt={p?.name || 'product'}
+                      className="w-full aspect-square object-cover opacity-90"
+                    />
+                    <div className="p-3">
+                      <p className="text-xs font-bold text-bright truncate">
+                        {p?.name || 'Unnamed'}
+                      </p>
+                      <p className="text-xs text-primary font-semibold">
+                        ${p?.price ?? 0}
+                      </p>
                     </div>
-                  ))}
-              </div>
+                  </div>
+                ))}
 
+              </div>
             </div>
 
           </div>
@@ -128,8 +132,8 @@ const HomePage = () => {
             ))}
           </div>
         )}
-      </section>
 
+      </section>
     </div>
   )
 }
