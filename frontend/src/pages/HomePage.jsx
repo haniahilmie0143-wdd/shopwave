@@ -30,15 +30,17 @@ const HomePage = () => {
     fetchProducts()
   }, [search])
 
-  const filtered = products
-    .filter((p) => category === 'All' || p.category === category)
-    .sort((a, b) => {
-      if (sort === 'price-asc') return a.price - b.price
-      if (sort === 'price-desc') return b.price - a.price
-      if (sort === 'rating') return b.rating - a.rating
-      return 0
-    })
-
+ const filtered = Array.isArray(products)
+  ? products
+      .filter((p) => category === 'All' || p.category === category)
+      .sort((a, b) => {
+        if (sort === 'price-asc') return a.price - b.price
+        if (sort === 'price-desc') return b.price - a.price
+        if (sort === 'rating') return b.rating - a.rating
+        return 0
+      })
+  : []
+  
   return (
     <div className="min-h-screen bg-dark page-enter">
 
