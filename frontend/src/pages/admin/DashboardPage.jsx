@@ -27,8 +27,8 @@ const DashboardPage = () => {
           axios.get('/api/orders', config),
           axios.get('/api/users', config),
         ])
-        setOrders(ordersRes.data)
-        setUsers(usersRes.data)
+        setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : [])
+        setUsers(Array.isArray(usersRes.data) ? usersRes.data : [])
       } finally {
         setLoading(false)
       }
