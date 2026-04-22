@@ -17,8 +17,8 @@ app.use(express.json())
 
 app.use('/api/users', require('./routes/userRoutes'))
 app.use('/api/products', require('./routes/productRoutes'))
-app.use('/api/orders', require('./routes/orderRoutes'))
-app.use('/api/payment', require('./routes/paymentRoutes'))
+app.use('/api/orders', require('./routes/OrderRoutes'))
+app.use('/api/payment', require('./routes/PaymentRoutes'))
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' })
